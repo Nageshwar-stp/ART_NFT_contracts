@@ -1,40 +1,33 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ArtCollection is ERC721, ERC721URIStorage, Ownable {
-    constructor(address initialOwner)
-        ERC721("Art Collection", "ART")
-        Ownable(initialOwner)
-    {}
+contract SimpleNFT is ERC721, Ownable {
+    uint256 private _currentTokenId;
+    string private _baseTokenURI;
+    uint256 public maxSupply;
+    uint256 public totalSupply;
 
-    function safeMint(address to, uint256 tokenId, string memory uri)
-        public
-        onlyOwner
-    {
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    constructor(
+        string memory baseURI,
+        string memory name,
+        string memory symbol
+    ) ERC721(name, symbol) Ownable(msg.sender) {
+        _baseTokenURI = baseURI;
+        _currentTokenId = 0; 
+        maxSupply = 2;
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
+    function _baseURI() internal view virtual override returns (string memory) {
+        return _baseTokenURI;
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
+    function mintNFT(address to) public onlyOwner {
+        require(totalSupply < maxSupply, "Not more minting allowed!");
+        _safeMint(to, _currentTokenId);
+        _currentTokenId += 1;  
+        totalSupply += 1;
     }
 }
